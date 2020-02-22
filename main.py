@@ -32,13 +32,6 @@ LEGEND = {
 }
 
 
-class Ship:
-    def __init__(self, *, size: int, coordinates: List[Tuple[int, int]]):
-        self.size = size,
-        self.coordinates = coordinates
-        self.hits = 0
-
-
 class BattleshipBoard:
     def __init__(self, *, name: str, height: int = SIZE[0], width: int = SIZE[1]):
         self.name = name
@@ -189,60 +182,47 @@ def get_input(player_name: str) -> Tuple[int, int]:
     return x, int(cells[1]) - 1
 
 
+def turn(player: BattleshipBoard, enemy: BattleshipBoard, autobot: bool = True):
+    while True:
+        player.print_board()
+        if enemy.ships_count == 0:
+            break
+
+        if autobot:
+            x = random.randint(0, player.height)
+            y = random.randint(0, player.width)
+            print(x, y)
+        else:
+            x, y = get_input(player.name)
+
+        has_hit = enemy.check_hit(int(x), int(y))
+        if has_hit == HitStatus.MISS:
+            player.enemy_board[int(x)][int(y)] = LEGEND['MISS']
+            print('Miss!')
+            break
+
+        if has_hit in (HitStatus.HIT, HitStatus.KILLED):
+            player.enemy_board[int(x)][int(y)] = LEGEND['HIT']
+
+            if has_hit == HitStatus.KILLED:
+                print('Killed!')
+            else:
+                print('Hit!')
+
+
 def main():
     player_1 = BattleshipBoard(name=input('Player 1 name:'))
     player_2 = BattleshipBoard(name=input('Player 2 name:'))
 
     while player_1.ships_count > 0 or player_2.ships_count > 0:
-        while True:
-            player_1.print_board()
-            # x, y = get_input(player_1.name)
-
-            x = random.randint(0, player_1.height)
-            y = random.randint(0, player_1.width)
-            print(x, y)
-
-            has_hit = player_2.check_hit(int(x), int(y))
-            if has_hit == HitStatus.MISS:
-                player_1.enemy_board[int(x)][int(y)] = LEGEND['MISS']
-                print('Miss!')
-                break
-            if has_hit in (HitStatus.HIT, HitStatus.KILLED):
-                player_1.enemy_board[int(x)][int(y)] = LEGEND['HIT']
-
-                if has_hit == HitStatus.KILLED:
-                    print('Killed!')
-                else:
-                    print('Hit!')
-
-                if player_2.ships_count == 0:
-                    print(f'{player_1.name} wins!')
-                    return
-
-        while True:
-            player_2.print_board()
-            # x, y = get_input(player_2.name)
-
-            x = random.randint(0, player_1.height)
-            y = random.randint(0, player_1.width)
-            print(x, y)
-
-            has_hit = player_1.check_hit(int(x), int(y))
-            if has_hit == HitStatus.MISS:
-                player_2.enemy_board[int(x)][int(y)] = LEGEND['MISS']
-                print('Miss!')
-                break
-            if has_hit in (HitStatus.HIT, HitStatus.KILLED):
-                player_2.enemy_board[int(x)][int(y)] = LEGEND['HIT']
-
-                if has_hit == HitStatus.KILLED:
-                    print('Killed!')
-                else:
-                    print('Hit!')
-
-            if player_1.ships_count == 0:
-                print(f'{player_1.name} wins!')
-                return
+        turn(player_1, player_2)
+        if player_2.ships_count == 0:
+            print(f'{player_1.name} wins!')
+            break
+        turn(player_2, player_1)
+        if player_1.ships_count == 0:
+            print(f'{player_2.name} wins!')
+            break
 
 
 if __name__ == "__main__":
