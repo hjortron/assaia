@@ -1,6 +1,6 @@
 import random
 from enum import Enum
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 SIZE = 10, 10
 SHIPS_COUNT_DICT = {
@@ -47,58 +47,59 @@ class BattleshipBoard:
         self.enemy_board = [[LEGEND['EMPTY'] for _ in range(height)] for _ in range(width)]
         self.ships_count = 0
 
-    def set_ship(self, ship_size: int) -> None:
-        founded: List[Tuple[int, int]] = []
+    def _get_space(self, ship_size: int, x: int, y: int) -> Optional[List[Tuple[int, int]]]:
+        founded = []
+        desired_size = ship_size
 
+        tilt = random.randint(0, 1)
+        if tilt == 0:
+            for i in range(x, x + ship_size):
+                if self.has_neighbors(x=i, y=y):
+                    break
+                founded.append((i, y))
+                desired_size -= 1
+
+            for i in range(x - desired_size, x):
+                if self.has_neighbors(x=i, y=y):
+                    break
+                founded.append((i, y))
+                desired_size -= 1
+
+                break
+
+        elif tilt == 1:
+            for i in range(y, y + ship_size):
+                if desired_size > 0:
+                    if self.has_neighbors(x=x, y=i):
+                        break
+                    founded.append((x, i))
+                    desired_size -= 1
+
+            for i in range(y - desired_size, y):
+                if desired_size > 0:
+                    if self.has_neighbors(x=x, y=i):
+                        break
+
+                    founded.append((x, i))
+                    desired_size -= 1
+
+                break
+
+        return founded if len(founded) == ship_size else None
+
+    def set_ship(self, ship_size: int) -> None:
         while True:
-            if len(founded) == ship_size:
-                for n_x, n_y in founded:
+            coor_x = random.randint(0, self.height)
+            coor_y = random.randint(0, self.width)
+
+            space = self._get_space(ship_size=ship_size, x=coor_x, y=coor_y)
+            if space:
+                for n_x, n_y in space:
                     self.board[n_x][n_y] = LEGEND['SHIP']
                     self.ships_count += 1
 
                 return
 
-            founded = []
-
-            x = random.randint(0, self.height)
-            y = random.randint(0, self.width)
-
-            desired_size = ship_size
-
-            tilt = random.randint(0, 1)
-            if tilt == 0:
-                while desired_size > 0:
-                    for i in range(x, x + ship_size):
-                        if self.has_neighbors(x=i, y=y):
-                            break
-                        founded.append((i, y))
-                        desired_size -= 1
-
-                    for i in range(x - ship_size, x - 1):
-                        if self.has_neighbors(x=i, y=y):
-                            break
-                        founded.append((i, y))
-                        desired_size -= 1
-
-                    break
-
-            elif tilt == 1:
-                for i in range(y, y + ship_size):
-                    if desired_size > 0:
-                        if self.has_neighbors(x=x, y=i):
-                            break
-                        founded.append((x, i))
-                        desired_size -= 1
-
-                for i in range(y - ship_size, y - 1):
-                    if desired_size > 0:
-                        if self.has_neighbors(x=x, y=i):
-                            break
-
-                        founded.append((x, i))
-                        desired_size -= 1
-
-                    break
 
     def check_hit(self, x, y) -> HitStatus:
         if x < 0 or y < 0:
@@ -203,6 +204,8 @@ def main():
         if player_1.ships_count == 0:
             print(f'{player_2.name} wins!')
             break
+
+    print('END')
 
 
 if __name__ == "__main__":
