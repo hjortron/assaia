@@ -1,6 +1,6 @@
 import random
 from enum import Enum
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 SIZE = 10, 10
 SHIPS_COUNT_DICT = {
@@ -99,7 +99,6 @@ class BattleshipBoard:
                     self.ships_count += 1
 
                 return
-
 
     def check_hit(self, x, y) -> HitStatus:
         if x < 0 or y < 0:
