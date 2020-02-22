@@ -1,6 +1,6 @@
 import random
 from enum import Enum
-from typing import Tuple, List
+from typing import List, Tuple
 
 SIZE = 10, 10
 SHIPS_COUNT_DICT = {
@@ -33,6 +33,11 @@ LEGEND = {
 
 
 class BattleshipBoard:
+    def setup(self):
+        for ship, count in SHIPS_COUNT_DICT.items():
+            for x in range(count):
+                self.set_ship(ship_size=SHIPS_SIZE_DICT[ship])
+
     def __init__(self, *, name: str, height: int = SIZE[0], width: int = SIZE[1]):
         self.name = name
         self._ships = []
@@ -41,10 +46,6 @@ class BattleshipBoard:
         self.board = [[LEGEND['EMPTY'] for _ in range(height)] for _ in range(width)]
         self.enemy_board = [[LEGEND['EMPTY'] for _ in range(height)] for _ in range(width)]
         self.ships_count = 0
-
-        for ship, count in SHIPS_COUNT_DICT.items():
-            for x in range(count):
-                self.set_ship(ship_size=SHIPS_SIZE_DICT[ship])
 
     def set_ship(self, ship_size: int) -> None:
         founded: List[Tuple[int, int]] = []
@@ -139,32 +140,9 @@ class BattleshipBoard:
         if self.get_value(x, y) == LEGEND['SHIP']:
             return True
 
-        if x - 1 >= 0:
-            if y - 1 >= 0:
-                if self.get_value(x - 1, y - 1) == LEGEND['SHIP']:
-                    return True
-            if self.get_value(x - 1, y) == LEGEND['SHIP']:
-                return True
-
-        if x + 1 < self.height:
-            if y + 1 < self.width:
-                if self.get_value(x + 1, y + 1) == LEGEND['SHIP']:
-                    return True
-            if self.get_value(x + 1, y) == LEGEND['SHIP']:
-                return True
-
-        if y + 1 < self.width:
-            if self.get_value(x, y + 1) == LEGEND['SHIP']:
-                return True
-            if x - 1 >= 0:
-                if self.get_value(x - 1, y + 1) == LEGEND['SHIP']:
-                    return True
-
-        if x + 1 < self.height:
-            if self.get_value(x + 1, y) == LEGEND['SHIP']:
-                return True
-            if y - 1 >= 0:
-                if self.get_value(x + 1, y - 1) == LEGEND['SHIP']:
+        for coor_X in range(x - 1, x + 2):
+            for coor_Y in range(y - 1, y + 2):
+                if self.get_value(coor_X, coor_Y) == LEGEND['SHIP']:
                     return True
 
         return False
@@ -212,7 +190,9 @@ def turn(player: BattleshipBoard, enemy: BattleshipBoard, autobot: bool = True):
 
 def main():
     player_1 = BattleshipBoard(name=input('Player 1 name:'))
+    player_1.setup()
     player_2 = BattleshipBoard(name=input('Player 2 name:'))
+    player_2.setup()
 
     while player_1.ships_count > 0 or player_2.ships_count > 0:
         turn(player_1, player_2)
